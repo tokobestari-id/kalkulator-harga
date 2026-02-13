@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { FeeBreakdown } from "./FeeBreakdown";
 import { ProfitAnalysis } from "./ProfitAnalysis";
 import { RoasSimulation } from "./RoasSimulation";
-import { PriceRecommendation } from "./PriceRecommendation";
+import { PriceInsight } from "./PriceInsight";
 
 interface ResultsPanelProps {
   results: CalculationResult;
@@ -37,10 +37,11 @@ export function ResultsPanel({
         roasValue={common.roasValue}
         onRoasChange={onRoasChange}
       />
-      <PriceRecommendation
-        data={results.priceRecommendation}
+      <PriceInsight
+        data={results.priceInsight}
+        roasSimulation={results.roasSimulation}
+        hargaJual={common.hargaJual}
         targetMargin={common.targetMargin}
-        roasValue={common.roasValue}
         onTargetMarginChange={onTargetMarginChange}
       />
     </div>

@@ -81,17 +81,18 @@ export interface RoasSimulationResult {
   minimumRoas: number;
 }
 
-export interface PriceRecommendationResult {
-  recommendedPrice: number;
+export interface PriceInsightResult {
+  breakEvenPrice: number;
+  breakEvenWithAdsPrice: number;
+  idealPrice: number;
   targetMargin: number;
-  totalFeesAtRecommended: number;
-  adCostAtRecommended: number;
-  netProfitAtRecommended: number;
+  roasValue: number;
+  profitAtIdealPrice: number;
 }
 
 export interface CalculationResult {
   feeBreakdown: FeeBreakdownResult;
   profitAnalysis: ProfitAnalysisResult;
   roasSimulation: RoasSimulationResult;
-  priceRecommendation: PriceRecommendationResult;
+  priceInsight: PriceInsightResult;
 }

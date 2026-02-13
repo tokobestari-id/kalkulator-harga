@@ -6,7 +6,7 @@ import type {
   FeeLineItem,
   ProfitAnalysisResult,
   RoasSimulationResult,
-  PriceRecommendationResult,
+  PriceInsightResult,
   CalculationResult,
   CalculatorInputs,
 } from "./types";
@@ -195,34 +195,48 @@ function extractFeePercentages(
   }
 }
 
-export function calculateRecommendedPrice(
+export function calculatePriceInsight(
   common: CommonInputs,
   totalFeePercentage: number,
   fixedFees: number
-): PriceRecommendationResult {
+): PriceInsightResult {
   const totalCOGS = common.hargaModal + common.biayaPengemasan;
+  const feeFraction = totalFeePercentage / 100;
+
+  // Break even tanpa iklan: harga di mana profit = 0
+  // price - COGS - price*feePct - fixedFees = 0
+  // price * (1 - feePct) = COGS + fixedFees
+  const breakEvenDenom = 1 - feeFraction;
+  const breakEvenPrice =
+    breakEvenDenom > 0 ? Math.ceil((totalCOGS + fixedFees) / breakEvenDenom) : 0;
+
+  // Break even dengan iklan: profit - adCost = 0
+  // price - COGS - price*feePct - fixedFees - price/ROAS = 0
   const roasFraction = common.roasValue > 0 ? 1 / common.roasValue : 0;
-  const denominator =
-    1 - totalFeePercentage / 100 - common.targetMargin / 100 - roasFraction;
+  const breakEvenAdsDenom = 1 - feeFraction - roasFraction;
+  const breakEvenWithAdsPrice =
+    breakEvenAdsDenom > 0
+      ? Math.ceil((totalCOGS + fixedFees) / breakEvenAdsDenom)
+      : 0;
 
-  let recommendedPrice = 0;
-  if (denominator > 0) {
-    recommendedPrice = Math.ceil((totalCOGS + fixedFees) / denominator);
-  }
+  // Harga ideal: break even with ads + target margin
+  const idealDenom = 1 - feeFraction - common.targetMargin / 100 - roasFraction;
+  const idealPrice =
+    idealDenom > 0 ? Math.ceil((totalCOGS + fixedFees) / idealDenom) : 0;
 
-  const totalFeesAtRecommended =
-    Math.round(recommendedPrice * (totalFeePercentage / 100)) + fixedFees;
-  const adCostAtRecommended =
-    common.roasValue > 0 ? Math.round(recommendedPrice / common.roasValue) : 0;
-  const netProfitAtRecommended =
-    recommendedPrice - totalCOGS - totalFeesAtRecommended - adCostAtRecommended;
+  // Profit at ideal price
+  const feesAtIdeal = Math.round(idealPrice * feeFraction) + fixedFees;
+  const adCostAtIdeal =
+    common.roasValue > 0 ? Math.round(idealPrice / common.roasValue) : 0;
+  const profitAtIdealPrice = idealPrice - totalCOGS - feesAtIdeal - adCostAtIdeal;
 
   return {
-    recommendedPrice,
+    breakEvenPrice,
+    breakEvenWithAdsPrice,
+    idealPrice,
     targetMargin: common.targetMargin,
-    totalFeesAtRecommended,
-    adCostAtRecommended,
-    netProfitAtRecommended,
+    roasValue: common.roasValue,
+    profitAtIdealPrice,
   };
 }
 
@@ -244,11 +258,11 @@ export function calculateAll(inputs: CalculatorInputs): CalculationResult {
     inputs.shopee,
     inputs.tiktok
   );
-  const priceRecommendation = calculateRecommendedPrice(
+  const priceInsight = calculatePriceInsight(
     inputs.common,
     totalPercentage,
     totalFixed
   );
 
-  return { feeBreakdown, profitAnalysis, roasSimulation, priceRecommendation };
+  return { feeBreakdown, profitAnalysis, roasSimulation, priceInsight };
 }
