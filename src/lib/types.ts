@@ -36,6 +36,7 @@ export interface CommonInputs {
   hargaJual: number;
   biayaPengemasan: number;
   targetMargin: number;
+  roasValue: number;
 }
 
 export interface CalculatorInputs {
@@ -72,16 +73,25 @@ export interface MaxAdsBudgetResult {
   maxBudgetPercent: number;
 }
 
+export interface RoasSimulationResult {
+  adCostPerItem: number;
+  profitAfterAds: number;
+  marginAfterAds: number;
+  isProfitableAfterAds: boolean;
+  minimumRoas: number;
+}
+
 export interface PriceRecommendationResult {
   recommendedPrice: number;
   targetMargin: number;
   totalFeesAtRecommended: number;
+  adCostAtRecommended: number;
   netProfitAtRecommended: number;
 }
 
 export interface CalculationResult {
   feeBreakdown: FeeBreakdownResult;
   profitAnalysis: ProfitAnalysisResult;
-  maxAdsBudget: MaxAdsBudgetResult;
+  roasSimulation: RoasSimulationResult;
   priceRecommendation: PriceRecommendationResult;
 }

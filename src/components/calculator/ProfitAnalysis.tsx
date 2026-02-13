@@ -11,7 +11,7 @@ export function ProfitAnalysis({ data }: ProfitAnalysisProps) {
   return (
     <Card variant={data.isProfitable ? "profit" : "loss"}>
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Analisis Keuntungan
+        Keuntungan Sebelum Iklan
       </h3>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">

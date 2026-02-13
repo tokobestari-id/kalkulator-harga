@@ -8,12 +8,14 @@ import { PercentageInput } from "@/components/ui/PercentageInput";
 interface PriceRecommendationProps {
   data: PriceRecommendationResult;
   targetMargin: number;
+  roasValue: number;
   onTargetMarginChange: (value: number) => void;
 }
 
 export function PriceRecommendation({
   data,
   targetMargin,
+  roasValue,
   onTargetMarginChange,
 }: PriceRecommendationProps) {
   return (
@@ -37,23 +39,34 @@ export function PriceRecommendation({
             <p className="text-2xl font-bold text-gray-900">
               {formatRupiah(data.recommendedPrice)}
             </p>
-            <p className="mt-2 text-xs text-gray-400">
-              Dengan harga ini, estimasi biaya platform{" "}
-              <span className="font-medium text-gray-600">
-                {formatRupiah(data.totalFeesAtRecommended)}
-              </span>{" "}
-              dan keuntungan bersih sekitar{" "}
-              <span className="font-medium text-green-600">
-                {formatRupiah(data.netProfitAtRecommended)}
-              </span>{" "}
-              per item.
-            </p>
+            <div className="mt-2 space-y-1 text-xs text-gray-400">
+              <div className="flex justify-between">
+                <span>Biaya platform</span>
+                <span className="font-medium text-gray-600">
+                  {formatRupiah(data.totalFeesAtRecommended)}
+                </span>
+              </div>
+              {roasValue > 0 && (
+                <div className="flex justify-between">
+                  <span>Biaya iklan (ROAS {roasValue}x)</span>
+                  <span className="font-medium text-gray-600">
+                    {formatRupiah(data.adCostAtRecommended)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-gray-100 pt-1">
+                <span>Keuntungan bersih setelah iklan</span>
+                <span className="font-medium text-green-600">
+                  {formatRupiah(data.netProfitAtRecommended)}
+                </span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="rounded-lg bg-yellow-50 p-3">
             <p className="text-sm text-yellow-700">
-              Total biaya + target margin melebihi 100%. Kurangi biaya atau
-              target margin.
+              Total biaya + target margin + biaya iklan melebihi 100%. Kurangi
+              biaya, target margin, atau naikkan ROAS.
             </p>
           </div>
         )}

@@ -35,6 +35,10 @@ export function CalculatorApp() {
     setCommon((prev) => ({ ...prev, targetMargin: value }));
   };
 
+  const handleRoasChange = (value: number) => {
+    setCommon((prev) => ({ ...prev, roasValue: value }));
+  };
+
   return (
     <div className="space-y-6">
       <PlatformSelector platform={platform} onChange={setPlatform} />
@@ -58,6 +62,7 @@ export function CalculatorApp() {
             results={results}
             common={common}
             onTargetMarginChange={handleTargetMarginChange}
+            onRoasChange={handleRoasChange}
           />
         </div>
       </div>

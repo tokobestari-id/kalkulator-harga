@@ -5,7 +5,7 @@ import type {
   FeeBreakdownResult,
   FeeLineItem,
   ProfitAnalysisResult,
-  MaxAdsBudgetResult,
+  RoasSimulationResult,
   PriceRecommendationResult,
   CalculationResult,
   CalculatorInputs,
@@ -151,16 +151,27 @@ export function calculateProfitAnalysis(
   };
 }
 
-export function calculateMaxAdsBudget(
+export function calculateRoasSimulation(
+  hargaJual: number,
+  roasValue: number,
   profitAnalysis: ProfitAnalysisResult
-): MaxAdsBudgetResult {
-  const maxBudgetPerItem = Math.max(0, profitAnalysis.netProfit);
-  const maxBudgetPercent =
-    profitAnalysis.revenue > 0
-      ? (maxBudgetPerItem / profitAnalysis.revenue) * 100
-      : 0;
+): RoasSimulationResult {
+  const adCostPerItem = roasValue > 0 ? Math.round(hargaJual / roasValue) : 0;
+  const profitAfterAds = profitAnalysis.netProfit - adCostPerItem;
+  const marginAfterAds =
+    hargaJual > 0 ? (profitAfterAds / hargaJual) * 100 : 0;
+  const minimumRoas =
+    profitAnalysis.netProfit > 0
+      ? hargaJual / profitAnalysis.netProfit
+      : Infinity;
 
-  return { maxBudgetPerItem, maxBudgetPercent };
+  return {
+    adCostPerItem,
+    profitAfterAds,
+    marginAfterAds,
+    isProfitableAfterAds: profitAfterAds > 0,
+    minimumRoas,
+  };
 }
 
 function extractFeePercentages(
@@ -190,8 +201,9 @@ export function calculateRecommendedPrice(
   fixedFees: number
 ): PriceRecommendationResult {
   const totalCOGS = common.hargaModal + common.biayaPengemasan;
+  const roasFraction = common.roasValue > 0 ? 1 / common.roasValue : 0;
   const denominator =
-    1 - totalFeePercentage / 100 - common.targetMargin / 100;
+    1 - totalFeePercentage / 100 - common.targetMargin / 100 - roasFraction;
 
   let recommendedPrice = 0;
   if (denominator > 0) {
@@ -200,13 +212,16 @@ export function calculateRecommendedPrice(
 
   const totalFeesAtRecommended =
     Math.round(recommendedPrice * (totalFeePercentage / 100)) + fixedFees;
+  const adCostAtRecommended =
+    common.roasValue > 0 ? Math.round(recommendedPrice / common.roasValue) : 0;
   const netProfitAtRecommended =
-    recommendedPrice - totalCOGS - totalFeesAtRecommended;
+    recommendedPrice - totalCOGS - totalFeesAtRecommended - adCostAtRecommended;
 
   return {
     recommendedPrice,
     targetMargin: common.targetMargin,
     totalFeesAtRecommended,
+    adCostAtRecommended,
     netProfitAtRecommended,
   };
 }
@@ -218,7 +233,11 @@ export function calculateAll(inputs: CalculatorInputs): CalculationResult {
       : calculateTiktokFees(inputs.common.hargaJual, inputs.tiktok);
 
   const profitAnalysis = calculateProfitAnalysis(inputs.common, feeBreakdown);
-  const maxAdsBudget = calculateMaxAdsBudget(profitAnalysis);
+  const roasSimulation = calculateRoasSimulation(
+    inputs.common.hargaJual,
+    inputs.common.roasValue,
+    profitAnalysis
+  );
 
   const { totalPercentage, totalFixed } = extractFeePercentages(
     inputs.platform,
@@ -231,5 +250,5 @@ export function calculateAll(inputs: CalculatorInputs): CalculationResult {
     totalFixed
   );
 
-  return { feeBreakdown, profitAnalysis, maxAdsBudget, priceRecommendation };
+  return { feeBreakdown, profitAnalysis, roasSimulation, priceRecommendation };
 }

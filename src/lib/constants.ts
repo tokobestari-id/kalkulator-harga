@@ -49,11 +49,14 @@ export const TIKTOK_ORDER_PROCESSING_FEE = 1250;
 export const TIKTOK_AFFILIATE_DEFAULT = 5.0;
 export const TIKTOK_FREE_SHIPPING_DEFAULT = 5.0;
 
+export const DEFAULT_ROAS = 8;
+
 export const DEFAULT_COMMON_INPUTS = {
   hargaModal: 0,
   hargaJual: 0,
   biayaPengemasan: 0,
   targetMargin: 20,
+  roasValue: DEFAULT_ROAS,
 };
 
 export const DEFAULT_SHOPEE_INPUTS = {
