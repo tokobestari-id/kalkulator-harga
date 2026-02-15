@@ -16,8 +16,8 @@ import { calculateAll } from "@/lib/calculations";
 import { Card } from "@/components/ui/Card";
 import { PlatformSelector } from "./PlatformSelector";
 import { CommonInputs } from "./CommonInputs";
-import { ShopeeForm } from "./ShopeeForm";
-import { TiktokForm } from "./TiktokForm";
+import { ShopeeSelector, ShopeeForm } from "./ShopeeForm";
+import { TiktokSelector, TiktokForm } from "./TiktokForm";
 import { ResultsPanel } from "./ResultsPanel";
 
 export function CalculatorApp() {
@@ -45,6 +45,16 @@ export function CalculatorApp() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-4">
+          {platform === "shopee" && (
+            <Card title="Produk & Seller">
+              <ShopeeSelector values={shopee} onChange={setShopee} />
+            </Card>
+          )}
+          {platform === "tiktok" && (
+            <Card title="Produk & Seller">
+              <TiktokSelector values={tiktok} onChange={setTiktok} />
+            </Card>
+          )}
           <Card title="Input Harga">
             <CommonInputs values={common} onChange={setCommon} />
           </Card>

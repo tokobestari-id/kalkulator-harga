@@ -29,19 +29,22 @@ export function RoasSimulation({
     }
   };
 
+  const isRoasAboveMinimum =
+    data.minimumRoas !== Infinity && roasValue >= data.minimumRoas;
+
   return (
     <Card variant={data.isProfitableAfterAds ? "profit" : "loss"}>
       <div className="mb-4 flex items-center gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-          Simulasi ROAS (Setelah Iklan)
+          Simulasi Iklan
         </h3>
-        <Tooltip text="ROAS = Return on Ad Spend. Jika ROAS 8, artinya setiap Rp1 biaya iklan menghasilkan Rp8 pendapatan." />
+        <Tooltip text="ROAS = berapa kali lipat hasil dari biaya iklan. ROAS 8 artinya Rp1 iklan → Rp8 penjualan." />
       </div>
 
       <div className="space-y-4">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            ROAS Anda
+            ROAS kamu
           </label>
           <div className="flex items-center rounded-lg border border-gray-300 bg-white transition-colors focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
             <input
@@ -56,14 +59,14 @@ export function RoasSimulation({
             <span className="pr-3 text-sm text-gray-500">x</span>
           </div>
           <p className="mt-1 text-xs text-gray-400">
-            Contoh: ROAS 8 = setiap Rp1 iklan menghasilkan Rp8 revenue
+            Makin tinggi ROAS, makin efisien iklan kamu
           </p>
         </div>
 
         {roasValue > 0 && (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Biaya Iklan per Item</span>
+              <span className="text-gray-600">Biaya iklan per item</span>
               <span className="text-gray-900">
                 -{formatRupiah(data.adCostPerItem)}
               </span>
@@ -73,7 +76,7 @@ export function RoasSimulation({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-900">
-                    Keuntungan Setelah Iklan
+                    Untung setelah iklan
                   </span>
                   <Badge
                     variant={data.isProfitableAfterAds ? "profit" : "loss"}
@@ -90,7 +93,7 @@ export function RoasSimulation({
                 </span>
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-gray-500">Margin Setelah Iklan</span>
+                <span className="text-gray-500">Margin setelah iklan</span>
                 <span
                   className={`font-medium ${
                     data.isProfitableAfterAds
@@ -103,19 +106,39 @@ export function RoasSimulation({
               </div>
             </div>
 
-            <div className="mt-3 rounded-lg bg-gray-50 p-3">
+            <div
+              className={`mt-3 rounded-lg p-3 ${
+                isRoasAboveMinimum ? "bg-green-50" : "bg-red-50"
+              }`}
+            >
               <div className="flex justify-between">
-                <span className="text-gray-600">ROAS Minimal (Impas)</span>
-                <span className="font-semibold text-gray-900">
+                <span
+                  className={
+                    isRoasAboveMinimum ? "text-green-700" : "text-red-700"
+                  }
+                >
+                  ROAS minimal biar gak rugi
+                </span>
+                <span
+                  className={`font-semibold ${
+                    isRoasAboveMinimum ? "text-green-900" : "text-red-900"
+                  }`}
+                >
                   {data.minimumRoas === Infinity
-                    ? "Tidak bisa impas"
+                    ? "—"
                     : `${data.minimumRoas.toFixed(1)}x`}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-gray-400">
+              <p
+                className={`mt-1 text-xs ${
+                  isRoasAboveMinimum ? "text-green-600" : "text-red-600"
+                }`}
+              >
                 {data.minimumRoas === Infinity
-                  ? "Anda sudah rugi sebelum iklan. Naikkan harga jual atau kurangi biaya."
-                  : `ROAS di bawah ${data.minimumRoas.toFixed(1)} = rugi setelah iklan`}
+                  ? "Sudah rugi sebelum iklan — naikkan harga jual atau kurangi biaya"
+                  : isRoasAboveMinimum
+                    ? `ROAS kamu ${roasValue}x ✅ di atas batas aman`
+                    : `ROAS di bawah ${data.minimumRoas.toFixed(1)}x = rugi setelah iklan`}
               </p>
             </div>
           </div>

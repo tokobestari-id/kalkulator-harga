@@ -7,28 +7,38 @@ export type ShopeeSeller = "non_star" | "star" | "star_plus" | "mall";
 export interface ShopeeCategoryConfig {
   label: string;
   description: string;
-  adminFeePercent: number;
+  adminFeeByTier: Record<ShopeeSeller, number>;
 }
 
 export interface ShopeeInputs {
   category: ShopeeCategory;
   sellerType: ShopeeSeller;
   adminFeePercent: number;
-  gratisOngkirEnabled: boolean;
   gratisOngkirPercent: number;
   affiliateEnabled: boolean;
   affiliatePercent: number;
-  campaignEnabled: boolean;
-  campaignPercent: number;
+}
+
+export type TiktokSellerType = "marketplace" | "mall";
+
+export interface TiktokSubcategoryConfig {
+  label: string;
+  platformCommission: number;
+  gratisOngkirCommission: number;
+}
+
+export interface TiktokCategoryGroup {
+  label: string;
+  subcategories: Record<string, TiktokSubcategoryConfig>;
 }
 
 export interface TiktokInputs {
+  subcategory: string;
+  sellerType: TiktokSellerType;
   platformCommissionPercent: number;
-  dynamicCommissionPercent: number;
+  gratisOngkirPercent: number;
   affiliateEnabled: boolean;
   affiliatePercent: number;
-  freeShippingEnabled: boolean;
-  freeShippingPercent: number;
 }
 
 export interface CommonInputs {

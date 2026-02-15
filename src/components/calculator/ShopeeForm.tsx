@@ -29,18 +29,28 @@ const sellerOptions = (
   label,
 }));
 
-export function ShopeeForm({ values, onChange }: ShopeeFormProps) {
+function getAdminFee(category: ShopeeCategory, sellerType: ShopeeSeller): number {
+  return SHOPEE_CATEGORIES[category].adminFeeByTier[sellerType];
+}
+
+/** Selector section: Kategori + Tipe Seller (rendered above price inputs) */
+export function ShopeeSelector({ values, onChange }: ShopeeFormProps) {
   const handleCategoryChange = (value: string) => {
     const category = value as ShopeeCategory;
     onChange({
       ...values,
       category,
-      adminFeePercent: SHOPEE_CATEGORIES[category].adminFeePercent,
+      adminFeePercent: getAdminFee(category, values.sellerType),
     });
   };
 
   const handleSellerChange = (value: string) => {
-    onChange({ ...values, sellerType: value as ShopeeSeller });
+    const sellerType = value as ShopeeSeller;
+    onChange({
+      ...values,
+      sellerType,
+      adminFeePercent: getAdminFee(values.category, sellerType),
+    });
   };
 
   return (
@@ -61,13 +71,25 @@ export function ShopeeForm({ values, onChange }: ShopeeFormProps) {
         onChange={handleSellerChange}
         options={sellerOptions}
       />
+      {values.sellerType === "mall" && (
+        <p className="text-xs text-amber-600 -mt-2">
+          Shopee Mall dikenakan Biaya Pembayaran 1,8% (maks. Rp50.000)
+        </p>
+      )}
+    </div>
+  );
+}
 
+/** Fee settings: Admin + Gratis Ongkir (always-on) + Affiliate toggle */
+export function ShopeeForm({ values, onChange }: ShopeeFormProps) {
+  return (
+    <div className="space-y-4">
       <div>
         <div className="flex items-center gap-2 mb-1.5">
           <label className="text-sm font-medium text-gray-700">
             Biaya Admin
           </label>
-          <Tooltip text="Biaya administrasi Shopee berdasarkan kategori produk. Otomatis terisi, tapi bisa diedit manual sesuai sub-kategori Anda." />
+          <Tooltip text="Biaya administrasi Shopee berdasarkan kategori produk & tipe seller. Otomatis terisi, tapi bisa diedit manual sesuai sub-kategori Anda." />
         </div>
         <PercentageInput
           value={values.adminFeePercent}
@@ -77,18 +99,22 @@ export function ShopeeForm({ values, onChange }: ShopeeFormProps) {
         />
       </div>
 
-      <div className="border-t border-gray-100 pt-4 space-y-4">
-        <FeeToggle
-          label="Gratis Ongkir"
-          description="Biaya subsidi ongkir yang ditanggung seller saat mengikuti program Gratis Ongkir XTRA"
-          enabled={values.gratisOngkirEnabled}
-          onToggle={(v) => onChange({ ...values, gratisOngkirEnabled: v })}
-          percent={values.gratisOngkirPercent}
-          onPercentChange={(v) =>
-            onChange({ ...values, gratisOngkirPercent: v })
-          }
+      <div>
+        <div className="flex items-center gap-2 mb-1.5">
+          <label className="text-sm font-medium text-gray-700">
+            Biaya Gratis Ongkir
+          </label>
+          <Tooltip text="Biaya program Gratis Ongkir XTRA Shopee yang ditanggung seller" />
+        </div>
+        <PercentageInput
+          value={values.gratisOngkirPercent}
+          onChange={(v) => onChange({ ...values, gratisOngkirPercent: v })}
+          min={0}
           max={15}
         />
+      </div>
+
+      <div className="border-t border-gray-100 pt-4">
         <FeeToggle
           label="Affiliate"
           description="Komisi affiliate untuk kreator/influencer yang mempromosikan produk Anda (+0.5% biaya layanan)"
@@ -99,17 +125,6 @@ export function ShopeeForm({ values, onChange }: ShopeeFormProps) {
             onChange({ ...values, affiliatePercent: v })
           }
           max={15}
-        />
-        <FeeToggle
-          label="Campaign"
-          description="Biaya tambahan saat mengikuti campaign/promo Shopee"
-          enabled={values.campaignEnabled}
-          onToggle={(v) => onChange({ ...values, campaignEnabled: v })}
-          percent={values.campaignPercent}
-          onPercentChange={(v) =>
-            onChange({ ...values, campaignPercent: v })
-          }
-          max={10}
         />
       </div>
     </div>

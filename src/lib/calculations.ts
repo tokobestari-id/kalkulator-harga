@@ -13,8 +13,11 @@ import type {
 import {
   SHOPEE_TRANSACTION_FEE,
   SHOPEE_AFFILIATE_SERVICE_FEE,
-  TIKTOK_DYNAMIC_COMMISSION_CAP,
+  SHOPEE_PAYMENT_FEE_PERCENT,
+  SHOPEE_PAYMENT_FEE_CAP,
+  TIKTOK_GRATIS_ONGKIR_CAP,
   TIKTOK_ORDER_PROCESSING_FEE,
+  TIKTOK_MALL_SERVICE_FEE_PERCENT,
 } from "./constants";
 
 export function calculateShopeeFees(
@@ -30,20 +33,31 @@ export function calculateShopeeFees(
     rate: inputs.adminFeePercent,
   });
 
+  if (inputs.sellerType === "mall") {
+    const rawPaymentFee = hargaJual * (SHOPEE_PAYMENT_FEE_PERCENT / 100);
+    const paymentFee = Math.min(rawPaymentFee, SHOPEE_PAYMENT_FEE_CAP);
+    items.push({
+      label: "Biaya Pembayaran",
+      amount: Math.round(paymentFee),
+      rate: SHOPEE_PAYMENT_FEE_PERCENT,
+      description: rawPaymentFee > SHOPEE_PAYMENT_FEE_CAP
+        ? "Terkena cap maksimal Rp50.000"
+        : "Khusus Shopee Mall",
+    });
+  }
+
   items.push({
-    label: "Biaya Layanan Transaksi",
+    label: "Biaya Proses Pesanan",
     amount: SHOPEE_TRANSACTION_FEE,
     description: "Rp1.250 per transaksi",
   });
 
-  if (inputs.gratisOngkirEnabled) {
-    const fee = hargaJual * (inputs.gratisOngkirPercent / 100);
-    items.push({
-      label: "Program Gratis Ongkir",
-      amount: Math.round(fee),
-      rate: inputs.gratisOngkirPercent,
-    });
-  }
+  const gratisOngkirFee = hargaJual * (inputs.gratisOngkirPercent / 100);
+  items.push({
+    label: "Biaya Gratis Ongkir",
+    amount: Math.round(gratisOngkirFee),
+    rate: inputs.gratisOngkirPercent,
+  });
 
   if (inputs.affiliateEnabled) {
     const commission = hargaJual * (inputs.affiliatePercent / 100);
@@ -61,15 +75,6 @@ export function calculateShopeeFees(
     });
   }
 
-  if (inputs.campaignEnabled) {
-    const fee = hargaJual * (inputs.campaignPercent / 100);
-    items.push({
-      label: "Biaya Campaign",
-      amount: Math.round(fee),
-      rate: inputs.campaignPercent,
-    });
-  }
-
   const totalFees = items.reduce((sum, item) => sum + item.amount, 0);
   const totalFeesPercent = hargaJual > 0 ? (totalFees / hargaJual) * 100 : 0;
 
@@ -82,25 +87,34 @@ export function calculateTiktokFees(
 ): FeeBreakdownResult {
   const items: FeeLineItem[] = [];
 
-  const platformCommission =
-    hargaJual * (inputs.platformCommissionPercent / 100);
+  const adminFee = hargaJual * (inputs.platformCommissionPercent / 100);
   items.push({
-    label: "Komisi Platform",
-    amount: Math.round(platformCommission),
+    label: "Biaya Admin",
+    amount: Math.round(adminFee),
     rate: inputs.platformCommissionPercent,
   });
 
-  const rawDynamic = hargaJual * (inputs.dynamicCommissionPercent / 100);
-  const dynamicCommission = Math.min(rawDynamic, TIKTOK_DYNAMIC_COMMISSION_CAP);
+  const rawGratisOngkir = hargaJual * (inputs.gratisOngkirPercent / 100);
+  const gratisOngkirFee = Math.min(rawGratisOngkir, TIKTOK_GRATIS_ONGKIR_CAP);
   items.push({
-    label: "Komisi Dinamis",
-    amount: Math.round(dynamicCommission),
-    rate: inputs.dynamicCommissionPercent,
+    label: "Biaya Gratis Ongkir",
+    amount: Math.round(gratisOngkirFee),
+    rate: inputs.gratisOngkirPercent,
     description:
-      rawDynamic > TIKTOK_DYNAMIC_COMMISSION_CAP
+      rawGratisOngkir > TIKTOK_GRATIS_ONGKIR_CAP
         ? "Terkena cap maksimal Rp40.000"
         : undefined,
   });
+
+  if (inputs.sellerType === "mall") {
+    const mallFee = hargaJual * (TIKTOK_MALL_SERVICE_FEE_PERCENT / 100);
+    items.push({
+      label: "Biaya Layanan Mall",
+      amount: Math.round(mallFee),
+      rate: TIKTOK_MALL_SERVICE_FEE_PERCENT,
+      description: "Khusus TikTok Mall Seller",
+    });
+  }
 
   items.push({
     label: "Biaya Pemrosesan Order",
@@ -114,15 +128,6 @@ export function calculateTiktokFees(
       label: "Komisi Affiliate",
       amount: Math.round(fee),
       rate: inputs.affiliatePercent,
-    });
-  }
-
-  if (inputs.freeShippingEnabled) {
-    const fee = hargaJual * (inputs.freeShippingPercent / 100);
-    items.push({
-      label: "Biaya Gratis Ongkir",
-      amount: Math.round(fee),
-      rate: inputs.freeShippingPercent,
     });
   }
 
@@ -180,17 +185,16 @@ function extractFeePercentages(
   tiktok: TiktokInputs
 ): { totalPercentage: number; totalFixed: number } {
   if (platform === "shopee") {
-    let pct = shopee.adminFeePercent;
+    let pct = shopee.adminFeePercent + shopee.gratisOngkirPercent;
     const fixed = SHOPEE_TRANSACTION_FEE;
-    if (shopee.gratisOngkirEnabled) pct += shopee.gratisOngkirPercent;
+    if (shopee.sellerType === "mall") pct += SHOPEE_PAYMENT_FEE_PERCENT;
     if (shopee.affiliateEnabled) pct += shopee.affiliatePercent + SHOPEE_AFFILIATE_SERVICE_FEE;
-    if (shopee.campaignEnabled) pct += shopee.campaignPercent;
     return { totalPercentage: pct, totalFixed: fixed };
   } else {
-    let pct = tiktok.platformCommissionPercent + tiktok.dynamicCommissionPercent;
+    let pct = tiktok.platformCommissionPercent + tiktok.gratisOngkirPercent;
     const fixed = TIKTOK_ORDER_PROCESSING_FEE;
+    if (tiktok.sellerType === "mall") pct += TIKTOK_MALL_SERVICE_FEE_PERCENT;
     if (tiktok.affiliateEnabled) pct += tiktok.affiliatePercent;
-    if (tiktok.freeShippingEnabled) pct += tiktok.freeShippingPercent;
     return { totalPercentage: pct, totalFixed: fixed };
   }
 }

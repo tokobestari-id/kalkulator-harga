@@ -8,7 +8,7 @@ interface FeeBreakdownProps {
 
 export function FeeBreakdown({ data }: FeeBreakdownProps) {
   return (
-    <Card title="Rincian Biaya Platform">
+    <Card title="Rincian Potongan Platform">
       <div className="space-y-2">
         {data.items.map((item, i) => (
           <div key={i} className="flex items-start justify-between text-sm">
@@ -32,7 +32,7 @@ export function FeeBreakdown({ data }: FeeBreakdownProps) {
         <div className="border-t border-gray-200 pt-2 mt-2">
           <div className="flex items-center justify-between text-sm font-semibold">
             <span className="text-gray-900">
-              Total Biaya ({formatPercent(data.totalFeesPercent)})
+              Total Potongan ({formatPercent(data.totalFeesPercent)})
             </span>
             <span className="text-gray-900">
               {formatRupiah(data.totalFees)}
